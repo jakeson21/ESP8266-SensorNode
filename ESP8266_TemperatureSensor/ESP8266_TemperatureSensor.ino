@@ -12,15 +12,16 @@
  * const char* ssid     = "****";
  * const char* password = "****";
  * const char* host     = "192.168.0.1";
- * const int sensorPort = 1234;
+ * const int   port     = 1234;
 */
 #include "WifiSetup.h"
 #include "SensorNodeEnums.h"
-const String DeviceId = String(ATTIC);
+const String DeviceId = String(BEDROOM1);
 
 // Use WiFiClient class to create TCP connections
 WiFiClient client;
 
+// DS1621
 #include <Wire.h> 
 #include <DS1621.h>
 byte sensoraddr = (0x90 >> 1) | 0;  // replace the 0 with the value you set on pins A2, A1 and A0
@@ -37,32 +38,15 @@ void setup()
 
   delay(10);
   Serial.println();
-  Serial.println();
-  Serial.print("Connecting to ");
-  Serial.println(ssid);
   /* Explicitly set the ESP8266 to be a WiFi-client, otherwise, it by default,
      would try to act as both a client and an access-point and could cause
      network-issues with your other WiFi-devices on your WiFi-network. */
   WiFi.mode(WIFI_STA);
-  WiFi.begin(ssid, password);
-  while (WiFi.status() != WL_CONNECTED) {
-    delay(500);
-    Serial.print(".");
-  }
-
+  WiFiUp();
   Serial.println("");
-  Serial.println("WiFi connected");  
-  Serial.println("IP address: ");
+  Serial.println("WiFi Connected");  
+  Serial.println("IP Address: ");
   Serial.println(WiFi.localIP());
-
-  if (!client.connect(host, sensorPort)) {
-    Serial.println("connection failed");
-    return;
-  }
-  Serial.print("Connected to: ");
-  Serial.print(host);
-  Serial.print(" ");
-  Serial.println(sensorPort);
 
   /// Configure for DS1621 temperature sensor
   // Set A2,A1,A0 = FALSE  
@@ -77,19 +61,8 @@ void setup()
 
 void loop() 
 {
-  if (!client.connected()) {
-    Serial.println();
-    Serial.println("disconnecting.");
-    client.stop();
-
-    Serial.println("reconnecting.");
-    if (!client.connect(host, sensorPort)) {
-      Serial.println("connection failed");
-      delay(1000);
-      return;
-    }
-    Serial.println("connected");
-  }
+  WiFiUp();
+  if (!ConnectToHost()) { return; }
   
   digitalWrite(ESP8266_LED, HIGH);
   delay(500);
@@ -110,13 +83,63 @@ void loop()
   // This will send the request to the server
   client.println(jsonData);
 
+  delay(1000);
   while(client.available()){
     String cmds = client.readStringUntil('\n');
     Serial.print("Recieved: ");
     Serial.println(cmds);
   }
 
-  delay(5000);
+  Serial.println("Disconnecting");
+  client.stop();
+  delay(1);
+  WiFiDown();
+  delay(9000);
+}
+
+bool WiFiUp(void)
+{
+  if (WiFi.status() == WL_CONNECTED)
+  {
+    return true;
+  }
+  
+  WiFi.forceSleepWake();
+  delay(1);
+  Serial.println();
+  Serial.print("Connecting to ");
+  Serial.print(ssid);
+  WiFi.begin(ssid, password);
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(500);
+    Serial.print(".");
+  }
+  Serial.println();
+  return true;
+}
+
+void WiFiDown()
+{
+  WiFi.disconnect();
+  WiFi.forceSleepBegin();
+  delay(1); //For some reason the modem won't go to sleep unless you do a delay(non-zero-number) -- no delay, no sleep and delay(0), no sleep - See more at: http://www.esp8266.com/viewtopic.php?p=38984#sthash.R0S3e0hR.dpuf
+}
+
+bool ConnectToHost()
+{
+  if (client.connected()) { return true; }
+
+  Serial.print("Connecting to ");
+  Serial.print(host);
+  Serial.print(":");
+  Serial.println(port);
+  if (!client.connect(host, port)) {
+    Serial.println("Connection Failed");
+    delay(1000);
+    return false;
+  }
+  Serial.println("Connected");
+  return true;
 }
 
 int getSensorReading(void) {
