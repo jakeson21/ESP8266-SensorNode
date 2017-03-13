@@ -3,8 +3,6 @@
  * https://github.com/esp8266/Arduino/blob/master/libraries/ESP8266WiFi/examples/WiFiClient/WiFiClient.ino#L71
  */
 
-#define ESP8266_LED 5
-
 #include <ESP8266WiFi.h>
 
 /* 
@@ -16,7 +14,7 @@
 */
 #include "WifiSetup.h"
 #include "SensorNodeEnums.h"
-const String DeviceId = String(BEDROOM1);
+const String DeviceId = String(ATTIC);
 
 // Use WiFiClient class to create TCP connections
 WiFiClient client;
@@ -33,8 +31,6 @@ void setup()
     // put your setup code here, to run once:
   Serial.begin(57600);
   Serial.println("Welcome");
-
-  pinMode(ESP8266_LED, OUTPUT);
 
   delay(10);
   Serial.println();
@@ -64,18 +60,14 @@ void loop()
   WiFiUp();
   if (!ConnectToHost()) { return; }
   
-  digitalWrite(ESP8266_LED, HIGH);
-  delay(500);
-  digitalWrite(ESP8266_LED, LOW);
-  delay(500);
-
   /// Take Reading
   long reading = 0;
   reading = getSensorReading();
-  float degreesF = Celcius2Fahrenheit(reading * 0.01);
+  float TempF = Celcius2Fahrenheit(reading * 0.01);
 
-  String jsonData = "{ \"value\": " + String(degreesF, 2);
-  jsonData += ", \"units\": \"F\", \"type\": \"temperature\", \"deviceId\" : " + DeviceId + " }";
+  String jsonData = "{ \"temperature\": " + String(TempF, 2);
+  jsonData += ", \"temperature_units\": \"F\", \"deviceId\" : " + DeviceId;
+  jsonData += " }";
   Serial.print("Sending: ");
   Serial.println(jsonData);
 
