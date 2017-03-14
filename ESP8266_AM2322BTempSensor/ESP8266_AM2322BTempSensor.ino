@@ -46,8 +46,6 @@ void setup()
      network-issues with your other WiFi-devices on your WiFi-network. */
   WiFi.mode(WIFI_STA);
   WiFiUp();
-  Serial.println("");
-  Serial.println("WiFi Connected");  
   Serial.println("IP Address: ");
   Serial.println(WiFi.localIP());
 
@@ -63,6 +61,7 @@ void loop()
 {
   WiFiUp();
   if (!ConnectToHost()) { return; }
+  long rssi_dBm = WiFi.RSSI();
 
   /// Take Reading
   float TempF, Humidity, HeatIndexF;
@@ -72,6 +71,7 @@ void loop()
     jsonData += ", \"temperature_units\": \"F\", \"deviceId\" : " + DeviceId;
     jsonData += ", \"humidity_units\": \"%\", \"humidity\": " + String(Humidity, 2);
     jsonData += ", \"heatindex_units\": \"F\", \"heatindex\": " + String(HeatIndexF, 2);
+    jsonData += ", \"rssi_units\": \"dBm\", \"rssi\": " + String(rssi_dBm);
     jsonData += " }";
     Serial.print("Sending: ");
     Serial.println(jsonData);
@@ -103,16 +103,22 @@ bool WiFiUp(void)
   }
   
   //WiFi.forceSleepWake();
-  delay(1);
+  delay(1);  
   Serial.println();
   Serial.print("Connecting to ");
-  Serial.print(ssid);
+  Serial.print(ssid);  
   WiFi.begin(ssid, password);
+  int retry_count = 20;
   while (WiFi.status() != WL_CONNECTED) {
     delay(500);
     Serial.print(".");
+    retry_count--;
+    if (retry_count<=0) return false;
   }
-  Serial.println();
+  Serial.print("WiFi Connected [");  
+  long rssi_dBm = WiFi.RSSI();
+  Serial.print(rssi_dBm);
+  Serial.println(" dBm]");
   return true;
 }
 
@@ -125,7 +131,11 @@ void WiFiDown()
 
 bool ConnectToHost()
 {
-  if (client.connected()) { return true; }
+  if (client.connected()) 
+  { 
+    Serial.println("Already connected");
+    return true; 
+    }
 
   Serial.print("Connecting to ");
   Serial.print(host);

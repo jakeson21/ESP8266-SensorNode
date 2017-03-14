@@ -14,7 +14,7 @@
 */
 #include "WifiSetup.h"
 #include "SensorNodeEnums.h"
-const String DeviceId = String(ATTIC);
+const String DeviceId = String(BASEMENT);
 
 // Use WiFiClient class to create TCP connections
 WiFiClient client;
@@ -39,8 +39,10 @@ void setup()
      network-issues with your other WiFi-devices on your WiFi-network. */
   WiFi.mode(WIFI_STA);
   WiFiUp();
-  Serial.println("");
-  Serial.println("WiFi Connected");  
+  Serial.print("WiFi Connected [");  
+  long rssi_dBm = WiFi.RSSI();
+  Serial.print(rssi_dBm);
+  Serial.println(" dBm]");
   Serial.println("IP Address: ");
   Serial.println(WiFi.localIP());
 
@@ -59,6 +61,7 @@ void loop()
 {
   WiFiUp();
   if (!ConnectToHost()) { return; }
+  long rssi_dBm = WiFi.RSSI();
   
   /// Take Reading
   long reading = 0;
@@ -67,6 +70,7 @@ void loop()
 
   String jsonData = "{ \"temperature\": " + String(TempF, 2);
   jsonData += ", \"temperature_units\": \"F\", \"deviceId\" : " + DeviceId;
+  jsonData += ", \"rssi_units\": \"dBm\", \"rssi\": " + String(rssi_dBm);
   jsonData += " }";
   Serial.print("Sending: ");
   Serial.println(jsonData);
@@ -102,9 +106,12 @@ bool WiFiUp(void)
   Serial.print("Connecting to ");
   Serial.print(ssid);
   WiFi.begin(ssid, password);
+  int retry_count = 20;
   while (WiFi.status() != WL_CONNECTED) {
     delay(500);
     Serial.print(".");
+    retry_count--;
+    if (retry_count<=0) return false;
   }
   Serial.println();
   return true;
