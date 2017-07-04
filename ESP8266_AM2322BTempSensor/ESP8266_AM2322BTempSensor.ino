@@ -38,14 +38,16 @@ void setup()
     // put your setup code here, to run once:
   Serial.begin(57600);
   Serial.println("Welcome");
-
-  delay(10);
   Serial.println();
+  delay(100);
   /* Explicitly set the ESP8266 to be a WiFi-client, otherwise, it by default,
      would try to act as both a client and an access-point and could cause
      network-issues with your other WiFi-devices on your WiFi-network. */
   WiFi.mode(WIFI_STA);
   WiFiUp();
+  long rssi_dBm = WiFi.RSSI();
+  Serial.print(rssi_dBm);
+  Serial.println(" dBm]");
   Serial.println("IP Address: ");
   Serial.println(WiFi.localIP());
 
@@ -90,9 +92,9 @@ void loop()
 
   Serial.println("Disconnecting");
   client.stop();
-  delay(1);
+  delay(100);
   WiFiDown();
-  delay(9000);
+  delay(10000);
 }
 
 bool WiFiUp(void)
@@ -102,8 +104,8 @@ bool WiFiUp(void)
     return true;
   }
   
-  //WiFi.forceSleepWake();
-  delay(1);  
+  WiFi.forceSleepWake();
+  delay(100);  
   Serial.println();
   Serial.print("Connecting to ");
   Serial.print(ssid);  
@@ -125,8 +127,8 @@ bool WiFiUp(void)
 void WiFiDown()
 {
   WiFi.disconnect();
-  //WiFi.forceSleepBegin();
-  delay(1); //For some reason the modem won't go to sleep unless you do a delay(non-zero-number) -- no delay, no sleep and delay(0), no sleep - See more at: http://www.esp8266.com/viewtopic.php?p=38984#sthash.R0S3e0hR.dpuf
+  WiFi.forceSleepBegin();
+  delay(100); //For some reason the modem won't go to sleep unless you do a delay(non-zero-number) -- no delay, no sleep and delay(0), no sleep - See more at: http://www.esp8266.com/viewtopic.php?p=38984#sthash.R0S3e0hR.dpuf
 }
 
 bool ConnectToHost()
@@ -170,20 +172,6 @@ bool getSensorReading(float& outTempF, float& outHumidity, float& outHeatIndexF)
   // Compute heat index in Celsius (isFahreheit = false)
   float hic = dht.computeHeatIndex(t, h, false);
 
-  Serial.print("Humidity: ");
-  Serial.print(h);
-  Serial.print(" %\t");
-  Serial.print("Temperature: ");
-  Serial.print(t);
-  Serial.print(" *C ");
-  Serial.print(f);
-  Serial.print(" *F\t");
-  Serial.print("Heat index: ");
-  Serial.print(hic);
-  Serial.print(" *C ");
-  Serial.print(hif);
-  Serial.println(" *F");
-
   outHumidity = h;
   outTempF = f;
   outHeatIndexF = hif;
@@ -191,8 +179,4 @@ bool getSensorReading(float& outTempF, float& outHumidity, float& outHeatIndexF)
   return true;
   }
 
-float Celcius2Fahrenheit(float celsius)
-{
-  return 1.8 * celsius + 32;
-}
 

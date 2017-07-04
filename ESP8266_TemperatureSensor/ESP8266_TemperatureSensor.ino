@@ -14,7 +14,7 @@
 */
 #include "WifiSetup.h"
 #include "SensorNodeEnums.h"
-const String DeviceId = String(BASEMENT);
+const String DeviceId = String(MASTERBR);
 
 // Use WiFiClient class to create TCP connections
 WiFiClient client;
@@ -31,9 +31,8 @@ void setup()
     // put your setup code here, to run once:
   Serial.begin(57600);
   Serial.println("Welcome");
-
-  delay(10);
   Serial.println();
+  delay(100);
   /* Explicitly set the ESP8266 to be a WiFi-client, otherwise, it by default,
      would try to act as both a client and an access-point and could cause
      network-issues with your other WiFi-devices on your WiFi-network. */
@@ -64,11 +63,10 @@ void loop()
   long rssi_dBm = WiFi.RSSI();
   
   /// Take Reading
-  long reading = 0;
-  reading = getSensorReading();
-  float TempF = Celcius2Fahrenheit(reading * 0.01);
+  float reading = 0;
+  reading = getSensorReading();  
 
-  String jsonData = "{ \"temperature\": " + String(TempF, 2);
+  String jsonData = "{ \"temperature\": " + String(reading, 2);
   jsonData += ", \"temperature_units\": \"F\", \"deviceId\" : " + DeviceId;
   jsonData += ", \"rssi_units\": \"dBm\", \"rssi\": " + String(rssi_dBm);
   jsonData += " }";
@@ -88,9 +86,9 @@ void loop()
 
   Serial.println("Disconnecting");
   client.stop();
-  delay(1);
+  delay(100);
   WiFiDown();
-  delay(9000);
+  delay(10000);
 }
 
 bool WiFiUp(void)
@@ -101,7 +99,7 @@ bool WiFiUp(void)
   }
   
   WiFi.forceSleepWake();
-  delay(1);
+  delay(100);
   Serial.println();
   Serial.print("Connecting to ");
   Serial.print(ssid);
@@ -121,7 +119,7 @@ void WiFiDown()
 {
   WiFi.disconnect();
   WiFi.forceSleepBegin();
-  delay(1); //For some reason the modem won't go to sleep unless you do a delay(non-zero-number) -- no delay, no sleep and delay(0), no sleep - See more at: http://www.esp8266.com/viewtopic.php?p=38984#sthash.R0S3e0hR.dpuf
+  delay(100); //For some reason the modem won't go to sleep unless you do a delay(non-zero-number) -- no delay, no sleep and delay(0), no sleep - See more at: http://www.esp8266.com/viewtopic.php?p=38984#sthash.R0S3e0hR.dpuf
 }
 
 bool ConnectToHost()
@@ -141,12 +139,13 @@ bool ConnectToHost()
   return true;
 }
 
-int getSensorReading(void) {
-  return sensor.getHrTemp();                             // read high-resolution temperature
+float getSensorReading(void) {
+  long reading = sensor.getHrTemp();                             // read high-resolution temperature
+  return Celcius2Fahrenheit(reading * 0.01);
 }
 
 float Celcius2Fahrenheit(float celsius)
 {
-  return 1.8 * celsius + 32;
+  return (1.8 * celsius) + 32;
 }
 
