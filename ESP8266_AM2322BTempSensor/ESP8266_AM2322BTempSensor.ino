@@ -19,7 +19,7 @@ const String DeviceId = String(BEDROOM1);
 // Use WiFiClient class to create TCP connections
 WiFiClient client;
 
-// DS1621
+// DHT type sensor
 #include "DHT.h"
 #define DHTPIN 5     // what digital pin we're connected to
 // Uncomment whatever type you're using!
@@ -45,6 +45,8 @@ void setup()
      network-issues with your other WiFi-devices on your WiFi-network. */
   WiFi.mode(WIFI_STA);
   WiFiUp();
+  WiFi.setOutputPower(9.0);
+  Serial.print("WiFi Connected [");
   long rssi_dBm = WiFi.RSSI();
   Serial.print(rssi_dBm);
   Serial.println(" dBm]");
@@ -61,7 +63,7 @@ void setup()
 
 void loop() 
 {
-  WiFiUp();
+//  WiFiUp();
   if (!ConnectToHost()) { return; }
   long rssi_dBm = WiFi.RSSI();
 
@@ -90,11 +92,11 @@ void loop()
     Serial.println(cmds);
   }
 
-  Serial.println("Disconnecting");
-  client.stop();
+//  Serial.println("Disconnecting");
+//  client.stop();
   delay(100);
-  WiFiDown();
-  delay(10000);
+//  WiFiDown();
+  delay(29000);
 }
 
 bool WiFiUp(void)
@@ -117,10 +119,7 @@ bool WiFiUp(void)
     retry_count--;
     if (retry_count<=0) return false;
   }
-  Serial.print("WiFi Connected [");  
-  long rssi_dBm = WiFi.RSSI();
-  Serial.print(rssi_dBm);
-  Serial.println(" dBm]");
+  Serial.println();
   return true;
 }
 
@@ -178,5 +177,3 @@ bool getSensorReading(float& outTempF, float& outHumidity, float& outHeatIndexF)
   
   return true;
   }
-
-

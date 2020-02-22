@@ -1,6 +1,8 @@
 /*
  * See: https://learn.sparkfun.com/tutorials/esp8266-thing-hookup-guide/using-the-arduino-addon
  * https://github.com/esp8266/Arduino/blob/master/libraries/ESP8266WiFi/examples/WiFiClient/WiFiClient.ino#L71
+ * See also: https://github.com/esp8266/Arduino
+ * Use Node MCU v 0.9
  */
 
 #include <ESP8266WiFi.h>
@@ -14,7 +16,7 @@
 */
 #include "WifiSetup.h"
 #include "SensorNodeEnums.h"
-const String DeviceId = String(MASTERBR);
+const String DeviceId = String(BEDROOM1);
 
 // Use WiFiClient class to create TCP connections
 WiFiClient client;
@@ -38,7 +40,8 @@ void setup()
      network-issues with your other WiFi-devices on your WiFi-network. */
   WiFi.mode(WIFI_STA);
   WiFiUp();
-  Serial.print("WiFi Connected [");  
+  WiFi.setOutputPower(15.0); 
+  Serial.print("WiFi Connected [");
   long rssi_dBm = WiFi.RSSI();
   Serial.print(rssi_dBm);
   Serial.println(" dBm]");
@@ -58,7 +61,7 @@ void setup()
 
 void loop() 
 {
-  WiFiUp();
+//  WiFiUp();
   if (!ConnectToHost()) { return; }
   long rssi_dBm = WiFi.RSSI();
   
@@ -84,11 +87,11 @@ void loop()
     Serial.println(cmds);
   }
 
-  Serial.println("Disconnecting");
-  client.stop();
+//  Serial.println("Disconnecting");
+//  client.stop();
   delay(100);
-  WiFiDown();
-  delay(10000);
+//  WiFiDown();
+  delay(29000);
 }
 
 bool WiFiUp(void)
@@ -148,4 +151,3 @@ float Celcius2Fahrenheit(float celsius)
 {
   return (1.8 * celsius) + 32;
 }
-
