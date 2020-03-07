@@ -16,12 +16,18 @@
 */
 #include "WifiSetup.h"
 #include "SensorNodeEnums.h"
-const String DeviceId = String(BEDROOM1);
+const String DeviceId = String(BEDROOM2);
 
 // Use WiFiClient class to create TCP connections
 WiFiClient client;
 
-// DS1621
+// DS1621 - Connections
+/* ESP     DS1621      ESP
+ * D2    1 SDA V+ 8    Vin
+ * D1    2 SCL A0 7    GND
+ * NC    3 To  A1 6    GND
+ * GND   4 GND A2 5    GND
+ */
 #include <Wire.h> 
 #include <DS1621.h>
 byte sensoraddr = (0x90 >> 1) | 0;  // replace the 0 with the value you set on pins A2, A1 and A0
